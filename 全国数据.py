@@ -1,73 +1,44 @@
-from urllib import request
-import re
-user_agent = "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:72.0) Gecko/20100101 Firefox/72.0"
+import requests
+import json
+#获取网页内容
+def get_page(url):
+    #请求头用来表示用户身份
+    headers={'User-Agent':'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.9 Safari/537.36'}
+    try:
+        r=requests.get(url,headers=headers)
+        r.raise_for_status()#异常处理
+        r.encoding=r.apparent_encoding#从服务器返回的网页内容猜测编码方式
+        return r.json()
+    except Exception as e:
+        print("Error")
+        return ""
+        #提取信息
 
-headers = {"User-Agent": user_agent}
-
-# 爬取网站地址
-
-req = request.Request("http://m.medsci.cn/wh.asp",headers=headers)
-
-resp = request.urlopen(req)
-
-# 读取页面
-
-html = resp.read()
-
-headline = re.findall(r'<tr style="border: 1px solid black;font-weight:bold;">.*</tr>',html.decode('utf-8'))
-
-result = re.findall(r'<tr style="border-left:1px solid #F00;border-top:1px solid black">.*</tr>',html.decode('utf-8'))
-
-time = re.findall(r'<p class="head-time">.*</p>',html.decode('utf-8'))
-
-total = re.findall(r'<p class="head-title">.*</p>',html.decode('utf-8'))
-
-# 进行数据清洗
-
-headline = str(headline)
-
-headline = headline.replace('''['<tr style="border: 1px solid black;font-weight:bold;"><td style="border: 1px solid black;">''',"")
-
-headline = headline.replace('''</td><td style="border: 1px solid black;">''',"              ")
-
-headline = headline.replace('''</td></tr>']''',"")
-
-total = str(total)
-
-total = total.replace('''['<p class="head-title">''','')
-
-total = total.replace('''</p>']''','')
-
-result = str(result)
-
-result = result.replace('''['<tr style="border-left:1px solid #F00;border-top:1px solid black"><td style="border: 1px solid black;">''',"")
-
-result = result.replace('''</td><td style="border: 1px solid black;">''',"              ")
-
-result = result.replace(''''<tr style="border-left:1px solid #F00;border-top:1px solid black"><td style="border: 1px solid black;">''',"")
-
-result = result.replace("</td></tr>'","")
-
-result = result.replace('<td style="border: 1px solid black;"></td>',"0")
-
-result = result.replace(', ',"\n")
-
-result = result.replace(']',"")
-
-time = str(time)
-
-time = time.replace('''['<p class="head-time">''',"")
-
-time = time.replace('''</p>']''',"")
-
-# 输出结果
-
-print("=================================================================")
-
-print(total)
-
-print(headline)
-
-print(result)
-
-print(time)
+import pandas as pd
+def parse_page(data):
+    province=data['list']#找到33个省的信息
+    pdata=[]#保存省的信息
+    for i in range(33):#33个省
+        city=province[i]['list']
+        for j in city:
+            temp={}
+            temp["省份"]=j["province"]
+            temp["城市"]=j["city"]
+            temp["确诊"]=j["sure_cnt"]
+            temp["疑似"]=j["like_cnt"]
+            temp["死亡"]=j["die_cnt"]
+            temp["治愈"]=j["cure_cnt"]
+            pdata.append(temp)
+    #print(pdata)
+    result=pd.DataFrame(pdata)
+    return result
+    #数据存储
+def save_file(data_df):
+    data_df.to_excel("F:\\work\\spider.xlsx",index=False)#index=False表示不到处行序号，而且注意“\\”
+    print("保存成功！")
+#主函数
+if __name__ == '__main__':
+    url='https://api.m.sm.cn/rest?format=json&method=Huoshenshan.healingCity&mapType=1'#这里容易出错，把把最后&和后面的删掉有这个就不是ajex模式了就不能用json
+    hurt_json=get_page(url)
+    pdata=parse_page(hurt_json)
+    save_file(pdata)
