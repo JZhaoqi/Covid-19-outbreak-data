@@ -34,7 +34,7 @@ def parse_page(data):
     return result
     #数据存储
 def save_file(data_df):
-    data_df.to_excel("F:\\work\\spider.xlsx",index=False)#index=False表示不到处行序号，而且注意“\\”
+    data_df.to_excel("F:\\work\\全国数据.xlsx",index=False)#index=False表示不到处行序号，而且注意“\\”
     print("保存成功！")
 #主函数
 if __name__ == '__main__':
