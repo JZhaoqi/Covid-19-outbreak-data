@@ -34,11 +34,10 @@ def parse_page(data):
     return result
     #数据存储
 def save_file(data_df):
-    data_df.to_excel("F:\\work\\全国数据.xlsx",index=False)#index=False表示不到处行序号，而且注意“\\”
+    data_df.to_excel("F:\\work\\全国数据.xlsx",index=False)
     print("保存成功！")
 #主函数
 if __name__ == '__main__':
-    url='https://api.m.sm.cn/rest?format=json&method=Huoshenshan.healingCity&mapType=1'#这里容易出错，把把最后&和后面的删掉有这个就不是ajex模式了就不能用json
-    hurt_json=get_page(url)
+    url='https://api.m.sm.cn/rest?format=json&method=Huoshenshan.healingCity&mapType=1'
     pdata=parse_page(hurt_json)
     save_file(pdata)
